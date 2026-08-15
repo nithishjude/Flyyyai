@@ -79,21 +79,39 @@ def _parse_requirements_txt(file_path: Path) -> list[Evidence]:
 
 
 def _parse_package_json(file_path: Path) -> list[Evidence]:
-    """Extract AI npm package dependencies from package.json."""
+    """Extract AI npm package dependencies from package.json.
+
+    Line numbers are resolved by scanning the raw JSON text line-by-line so
+    that evidence records point to the exact line in the manifest file, making
+    the traceability chain accurate.
+    """
     import json
     evidence: list[Evidence] = []
     try:
-        data = json.loads(file_path.read_text(encoding="utf-8", errors="replace"))
+        raw_text = file_path.read_text(encoding="utf-8", errors="replace")
+        data = json.loads(raw_text)
     except (OSError, json.JSONDecodeError):
         return evidence
+
+    # Build a line-number index: package_name → first line it appears on
+    raw_lines = raw_text.splitlines()
+    lineno_map: dict[str, int] = {}
+    for i, line in enumerate(raw_lines, start=1):
+        stripped = line.strip().strip('"')
+        # Match "package-name": "version" patterns
+        if ":" in stripped:
+            pkg = stripped.split(":")[0].strip().strip('"')
+            if pkg and pkg not in lineno_map:
+                lineno_map[pkg] = i
 
     dep_sections = ["dependencies", "devDependencies", "peerDependencies"]
     for section in dep_sections:
         for pkg_name in data.get(section, {}).keys():
             if pkg_name.lower() in MANIFEST_AI_PACKAGES or pkg_name in MANIFEST_AI_PACKAGES:
+                line = lineno_map.get(pkg_name, 0)
                 evidence.append(Evidence(
                     file_path=str(file_path),
-                    line_number=0,  # JSON doesn't have line numbers easily
+                    line_number=line,
                     signal_type="MANIFEST_DEPENDENCY",
                     matched_value=pkg_name,
                     snippet=f'"{pkg_name}": "{data[section][pkg_name]}"',

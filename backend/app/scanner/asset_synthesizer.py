@@ -152,6 +152,15 @@ def _infer_purpose(app: CandidateApp, lib_signal: Optional[LibrarySignal]) -> st
 # Status / confidence computation
 # ---------------------------------------------------------------------------
 
+CONF_BASE_DISCOVERED = 0.6
+CONF_BASE_INFERRED_STRONG = 0.5
+CONF_BASE_INFERRED_MEDIUM = 0.55
+CONF_BASE_INFERRED_WEAK = 0.45
+CONF_BASE_INFERRED_MIN = 0.30
+CONF_BONUS_ENV = 0.2
+CONF_BONUS_ENDPOINT = 0.1
+CONF_BONUS_MODEL = 0.1
+
 def _compute_status_and_confidence(app: CandidateApp) -> tuple[str, float]:
     """
     Determine asset status and aggregate confidence score.
@@ -168,24 +177,24 @@ def _compute_status_and_confidence(app: CandidateApp) -> tuple[str, float]:
     if has_import and has_model:
         # Unambiguous: we know the library AND the specific model
         status = "Discovered"
-        # Weight: import(1.0) + model(0.9) + optional env/endpoint bonuses
-        confidence = min(1.0, 0.6 + (0.2 if has_env else 0) + (0.1 if has_endpoint else 0) + 0.1)
+        # Weight: import + model + optional env/endpoint bonuses
+        confidence = min(1.0, CONF_BASE_DISCOVERED + (CONF_BONUS_ENV if has_env else 0) + (CONF_BONUS_ENDPOINT if has_endpoint else 0) + CONF_BONUS_MODEL)
     elif has_import and (has_env or has_endpoint):
         # We know the library and have supporting evidence but no explicit model
         status = "Inferred"
-        confidence = min(0.75, 0.5 + (0.15 if has_env else 0) + (0.1 if has_endpoint else 0))
+        confidence = min(0.75, CONF_BASE_INFERRED_STRONG + (0.15 if has_env else 0) + (CONF_BONUS_ENDPOINT if has_endpoint else 0))
     elif has_import:
         # Library found but no corroborating evidence
         status = "Inferred"
-        confidence = 0.55
+        confidence = CONF_BASE_INFERRED_MEDIUM
     elif has_manifest and has_env:
         # Package listed in deps + env key — reasonably confident
         status = "Inferred"
-        confidence = 0.45
+        confidence = CONF_BASE_INFERRED_WEAK
     elif has_manifest or has_env:
         # Only indirect evidence
         status = "Inferred"
-        confidence = 0.30
+        confidence = CONF_BASE_INFERRED_MIN
     else:
         status = "Inferred"
         confidence = 0.20
@@ -204,42 +213,68 @@ def synthesize_assets(
     """
     Convert a list of CandidateApp objects into AIAssetRecord objects.
 
-    One CandidateApp → one AIAssetRecord (v1 simplification; a future version
-    could split by AI service within a single app).
+    Splits multi-library apps: groups evidence by distinct top-level library
+    so that one CandidateApp can yield multiple AIAssetRecords.
     """
+    from collections import defaultdict
     assets: list[AIAssetRecord] = []
 
     for app in app_candidates:
-        lib_imports = app.get_library_imports()
-        model_names = app.get_model_names()
-        env_keys = app.get_env_keys()
+        # Group evidence by resolved library provider
+        groups = defaultdict(list)
+        unassigned_evidence = []
+        
+        for ev in app.evidence:
+            if ev.signal_type in ("LIBRARY_IMPORT", "MANIFEST_DEPENDENCY"):
+                sig = _resolve_provider_from_libraries([ev.matched_value])
+                if sig:
+                    groups[sig.provider].append(ev)
+                else:
+                    unassigned_evidence.append(ev)
+            else:
+                unassigned_evidence.append(ev)
+                
+        # If no explicit libraries found, group everything under "Unknown"
+        if not groups:
+            groups["Unknown"] = app.evidence
+        else:
+            # Distribute unassigned evidence (models, env vars) to all groups
+            for group in groups.values():
+                group.extend(unassigned_evidence)
 
-        lib_signal = _resolve_provider_from_libraries(lib_imports)
-        provider = (
-            lib_signal.provider
-            if lib_signal
-            else _resolve_provider_from_env_keys(env_keys) or "Unknown"
-        )
-        asset_type = lib_signal.asset_type if lib_signal else "Model Integration"
-        model = _resolve_model(model_names)
-        purpose = _infer_purpose(app, lib_signal)
-        status, confidence = _compute_status_and_confidence(app)
+        for provider, group_evidence in groups.items():
+            # Create a temporary CandidateApp for this group
+            temp_app = CandidateApp(app_dir=app.app_dir, app_name=app.app_name, evidence=group_evidence)
+            
+            lib_imports = temp_app.get_library_imports()
+            model_names = temp_app.get_model_names()
+            env_keys = temp_app.get_env_keys()
 
-        # Human-readable name: "<App> <Provider> Integration"
-        name = f"{app.app_name.replace('-', ' ').title()} — {provider}"
+            lib_signal = _resolve_provider_from_libraries(lib_imports)
+            final_provider = provider
+            if final_provider == "Unknown":
+                final_provider = _resolve_provider_from_env_keys(env_keys) or "Unknown"
 
-        assets.append(AIAssetRecord(
-            name=name,
-            asset_type=asset_type,
-            llm_or_model=model,
-            provider=provider,
-            location="local",
-            application=app.app_name,
-            purpose=purpose,
-            discovery_source=discovery_source,
-            status=status,
-            confidence_score=confidence,
-            evidence=app.evidence,
-        ))
+            asset_type = lib_signal.asset_type if lib_signal else "Model Integration"
+            model = _resolve_model(model_names)
+            purpose = _infer_purpose(temp_app, lib_signal)
+            status, confidence = _compute_status_and_confidence(temp_app)
+
+            # Human-readable name: "<App> <Provider> Integration"
+            name = f"{app.app_name.replace('-', ' ').title()} — {final_provider}"
+
+            assets.append(AIAssetRecord(
+                name=name,
+                asset_type=asset_type,
+                llm_or_model=model,
+                provider=final_provider,
+                location="local",
+                application=app.app_name,
+                purpose=purpose,
+                discovery_source=discovery_source,
+                status=status,
+                confidence_score=confidence,
+                evidence=group_evidence,
+            ))
 
     return assets

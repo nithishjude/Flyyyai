@@ -12,7 +12,10 @@ import os
 from pathlib import Path
 from typing import Generator, Tuple
 
-# Directories to skip entirely (will not descend into these)
+# Directories to skip entirely (will not descend into these).
+# NOTE: ".env" is intentionally NOT in this set — a directory literally named
+# ".env" would also match the walk_repo dot-prefix guard below.  We keep .env
+# files reachable via MANIFEST_FILES so the extractor can read them.
 SKIP_DIRS: frozenset[str] = frozenset({
     "node_modules",
     ".git",
@@ -20,7 +23,6 @@ SKIP_DIRS: frozenset[str] = frozenset({
     "venv",
     ".venv",
     "env",
-    ".env",
     "dist",
     "build",
     ".next",
@@ -57,8 +59,8 @@ MANIFEST_FILES: frozenset[str] = frozenset({
     "setup.cfg",
     "Pipfile",
     "package.json",
-    "yarn.lock",        # We won't parse lock files but we note them
-    "package-lock.json",
+    # Lock files are intentionally excluded: we don't parse them and including
+    # them here added dead code paths in the extractor.
     ".env",
     ".env.example",
     ".env.local",

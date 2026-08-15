@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 class ScanCreate(BaseModel):
     repo_url: str = Field(
         ...,
+        max_length=2048,
         description="Local path or GitHub URL to the repository to scan",
         examples=["d:/fly/testbed", "https://github.com/org/repo"],
     )
@@ -32,6 +33,11 @@ class ScanOut(BaseModel):
     asset_count: int = 0
 
     model_config = {"from_attributes": True}
+
+
+class ScanListResponse(BaseModel):
+    scans: List[ScanOut]
+    total: int
 
 
 # ---------------------------------------------------------------------------
