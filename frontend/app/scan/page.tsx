@@ -28,22 +28,7 @@ export default function ScanPage() {
 
         <ScanForm />
 
-        <div
-          className="flex gap-3 mt-6 fade-in delay-200"
-          style={{ justifyContent: "center", flexWrap: "wrap" }}
-          aria-label="Platform features"
-        >
-          {[
-            { icon: "🔬", text: "AST-level Python parsing" },
-            { icon: "📦", text: "Manifest scanning" },
-            { icon: "🔑", text: "Env key detection" },
-            { icon: "🏷️", text: "Discovered vs Inferred" },
-          ].map(({ icon, text }) => (
-            <span key={text} className="stat-pill">
-              <span aria-hidden="true">{icon}</span> {text}
-            </span>
-          ))}
-        </div>
+
       </section>
 
       {/* How it works */}
