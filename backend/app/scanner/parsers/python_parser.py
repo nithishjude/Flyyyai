@@ -165,11 +165,11 @@ class _SignalVisitor(ast.NodeVisitor):
     # ------------------------------------------------------------------
 
     def visit_Constant(self, node: ast.Constant) -> None:
-        if not isinstance(node.s, str):
+        if not isinstance(node.value, str):
             self.generic_visit(node)
             return
 
-        value = node.s
+        value = node.value
         lineno = node.lineno
 
         # Model name check
