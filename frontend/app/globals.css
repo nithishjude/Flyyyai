@@ -945,6 +945,12 @@ a {
   filter: blur(100px);
   z-index: -1;
   opacity: 0.6;
+  animation: float-orb 15s ease-in-out infinite alternate;
+}
+@keyframes float-orb {
+  0% { transform: translateY(0) scale(1); opacity: 0.5; }
+  50% { transform: translateY(-30px) scale(1.05); opacity: 0.8; }
+  100% { transform: translateY(20px) scale(0.95); opacity: 0.5; }
 }
 .hero-glow-1 {
   width: 600px;
@@ -952,7 +958,8 @@ a {
   background: rgba(99, 102, 241, 0.15);
   top: -200px;
   left: 50%;
-  transform: translateX(-50%);
+  margin-left: -300px;
+  animation-delay: 0s;
 }
 .hero-glow-2 {
   width: 400px;
@@ -960,6 +967,7 @@ a {
   background: rgba(16, 185, 129, 0.1);
   top: 100px;
   left: 10%;
+  animation-delay: -5s;
 }
 .hero-glow-3 {
   width: 500px;
@@ -967,6 +975,7 @@ a {
   background: rgba(244, 63, 94, 0.08);
   top: 50px;
   right: 5%;
+  animation-delay: -10s;
 }
 
 .hero-inner {
@@ -1261,6 +1270,10 @@ a {
 .pipeline-step {
   display: flex;
   gap: 2rem;
+  transition: transform var(--transition);
+}
+.pipeline-step:hover {
+  transform: translateX(10px);
 }
 .pipeline-connector {
   display: flex;
@@ -1279,6 +1292,12 @@ a {
   font-size: 1.2rem;
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
   z-index: 2;
+  transition: all var(--transition);
+}
+.pipeline-step:hover .pipeline-node {
+  border-color: var(--accent-light);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+  transform: scale(1.1);
 }
 .pipeline-line {
   width: 2px;
@@ -1321,6 +1340,12 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1.25rem;
+  transition: all var(--transition);
+}
+.lang-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  border-color: var(--border-strong);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 .lang-icon {
   font-size: 1.5rem;
