@@ -13,33 +13,6 @@ An end-to-end system that automatically discovers AI usage across a codebase and
 ## Architecture
 
 ![Architecture Diagram](architecture.png)
-*Create an Excalidraw diagram matching the architecture below, export it as `architecture.png`, and place it in the root folder!*
-
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Discovery Pipeline                           │
-│                                                                     │
-│  Repo path ──► File Walker ──► Per-file Parsers                     │
-│                    │               │                                │
-│               (skip noise)    Python: ast module (precise)          │
-│                               JS/TS:  regex (documented trade-off)  │
-│                                   │                                 │
-│                           Evidence Extractor                        │
-│                  (raw Evidence records: file, line, snippet,        │
-│                   signal_type, matched_value, confidence_weight)    │
-│                                   │                                 │
-│                        Evidence Aggregator                          │
-│                  (groups by app boundary via manifest files)        │
-│                                   │                                 │
-│                         Asset Synthesizer                           │
-│                  (merges → AIAsset + Discovered/Inferred status)    │
-│                                   │                                 │
-│                       FastAPI + PostgreSQL                          │
-│                  (persists Scan, Asset, Evidence records)           │
-│                                   │                                 │
-│                        Next.js Frontend                             │
-│                  (scan trigger → inventory → detail + evidence)     │
-└─────────────────────────────────────────────────────────────────────┘
-```
 
 ### Component Map
 ```
