@@ -143,7 +143,7 @@ Three approaches were considered for source code analysis:
 |---|---|---|---|---|
 | **Python `ast` module** | High — syntactically precise, skips comments | Zero (stdlib) | Fast | ✅ Python files |
 | **Regex** | Medium — can false-positive on comments/strings | Zero | Fast | ✅ JS/TS files |
-| **LLM-based classification** | Potentially highest (semantic understanding) | External API call, cost, latency | Slow | ❌ Not v1 |
+| **LLM-based classification** | Potentially highest (semantic understanding) | External API call, cost, latency | Slow | Not v1 |
 
 **Decision:** Python files use AST parsing for high precision (no false positives from commented-out code). JS/TS files use regex because a full AST would require a Node.js subprocess or a Python binding with significant additional setup cost.
 
