@@ -9,14 +9,12 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
-    "postgresql://aiuser:aipass@localhost:5432/aiassets",
+    "sqlite:///./flyyy.db",
 )
 
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,     # Detect stale connections
-    pool_size=5,
-    max_overflow=10,
+    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
     echo=False,             # Set True to log SQL queries (dev only)
 )
 

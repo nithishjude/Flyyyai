@@ -49,6 +49,7 @@ SUPPORTED_EXTENSIONS: frozenset[str] = frozenset({
     ".tsx",
     ".mjs",
     ".cjs",
+    ".tf",
 })
 
 # Manifest files we handle specially
@@ -76,6 +77,7 @@ LANGUAGE_MAP: dict[str, str] = {
     ".tsx": "typescript",
     ".mjs": "javascript",
     ".cjs": "javascript",
+    ".tf": "terraform",
 }
 
 

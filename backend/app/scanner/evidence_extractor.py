@@ -15,6 +15,7 @@ from typing import Optional
 from app.scanner.file_walker import walk_repo
 from app.scanner.parsers.python_parser import parse_python_file, RawSignal
 from app.scanner.parsers.js_parser import parse_js_file
+from app.scanner.parsers.tf_parser import parse_tf_file
 from app.scanner.known_signals import (
     AI_LIBRARIES,
     MODEL_NAME_PATTERNS,
@@ -195,6 +196,8 @@ def extract_evidence(root_path: str | Path) -> list[Evidence]:
                 signals = parse_python_file(file_path)
             elif lang in ("javascript", "typescript"):
                 signals = parse_js_file(file_path)
+            elif lang == "terraform":
+                signals = parse_tf_file(file_path)
             else:
                 signals = []
 

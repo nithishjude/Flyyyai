@@ -6,9 +6,15 @@ An end-to-end system that automatically discovers AI usage across a codebase and
 
 ---
 
+**Live Deployment:** [https://your-deployment-link-here.vercel.app](https://your-deployment-link-here.vercel.app) (Placeholder)
+
+---
+
 ## Architecture
 
-```
+![Architecture Diagram](architecture.png)
+*Create an Excalidraw diagram matching the architecture below, export it as `architecture.png`, and place it in the root folder!*
+
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        Discovery Pipeline                           │
 │                                                                     │
@@ -39,7 +45,7 @@ An end-to-end system that automatically discovers AI usage across a codebase and
 ```
 d:\fly\
 ├── testbed/                    # Sample environment (2 realistic apps)
-│   ├── support-portal/         # Python + OpenAI GPT integration
+│   ├── support-portal/         # Python + OpenAI GPT + LangGraph agent + Azure TF infra
 │   └── doc-search/             # Python + sentence-transformers + FAISS
 ├── backend/
 │   ├── app/
@@ -48,7 +54,8 @@ d:\fly\
 │   │   │   ├── file_walker.py          # Directory traversal + skip logic
 │   │   │   ├── parsers/
 │   │   │   │   ├── python_parser.py    # AST-based (precise)
-│   │   │   │   └── js_parser.py        # Regex-based (documented limitation)
+│   │   │   │   ├── js_parser.py        # Regex-based (documented limitation)
+│   │   │   │   └── tf_parser.py        # Regex-based Terraform HCL parser
 │   │   │   ├── evidence_extractor.py   # Orchestrates parsers + manifest scanners
 │   │   │   ├── evidence_aggregator.py  # Groups evidence by app boundary
 │   │   │   └── asset_synthesizer.py    # Produces AIAsset + confidence model
@@ -194,9 +201,9 @@ Scans run synchronously within the FastAPI request. This is intentional for v1: 
 | Dynamically constructed model names (`os.getenv("MODEL_NAME")`) | Model name not resolved; asset becomes `Inferred` | Document in asset detail: "Model not resolved — set at runtime" |
 | JS/TS regex parsing misses template literals and dynamic requires | Some signals missed in complex JS | Documented trade-off; AST-based JS parser is v2 work |
 | Python syntax errors fall back to regex scan | Lower confidence weight (0.7 vs 1.0) for those files | Fallback is documented with a reduced `confidence_weight` |
-| Only Python + JS/TS supported | Other languages (Go, Java, Ruby) not scanned | Documented out-of-scope for v1; language list in `known_signals.py` |
+| Only Python + JS/TS + Terraform supported | Other languages (Go, Java, Ruby) not scanned | Documented out-of-scope for v1; language list in `known_signals.py` |
 | Local paths only (no GitHub URL cloning in v1) | Requires manual clone | GitHub URL support is a clear v1.1 extension point |
-| Cloud scanning not implemented | AWS Bedrock / Lambda tags not checked | Out of scope for v1; `boto3` in known signals catches code-level usage |
+| Cloud scanning via IaC only | Live cloud APIs (AWS Bedrock runtime, Lambda tags) not queried | Terraform static analysis catches declared resources; runtime discovery is v2 |
 
 ---
 
@@ -218,7 +225,8 @@ Tests cover:
 
 | App | AI Library | Model | Signals Planted |
 |---|---|---|---|
-| `support-portal` | `openai` | `gpt-4o-mini` | `import openai`, model name string, `OPENAI_API_KEY`, `requirements.txt` dep |
+| `support-portal` | `openai`, `langgraph` | `gpt-4o-mini` | `import openai`, `from langgraph.graph import StateGraph`, model name string, `OPENAI_API_KEY`, `requirements.txt` dep |
+| `support-portal` | Terraform IaC | Azure OpenAI | `azurerm_cognitive_account`, `azurerm_cognitive_deployment`, model name `"gpt-4o-mini"` in `infrastructure.tf` |
 | `doc-search` | `sentence-transformers`, `faiss` | `all-MiniLM-L6-v2` | `from sentence_transformers import SentenceTransformer`, model name, `HF_TOKEN`, `requirements.txt` deps |
 
 Each app has realistic non-AI utility functions (`formatter.py`, `text_cleaner.py`) and multiple routes to ensure the scanner must *locate* the signal rather than finding it trivially.
