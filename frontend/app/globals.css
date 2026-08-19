@@ -1149,12 +1149,14 @@ a {
   font-family: var(--font-heading);
   font-size: 1.4rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-light) 0%, var(--emerald) 100%);
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--emerald) 50%, var(--accent-light) 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   opacity: 0.85;
   filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.2));
+  animation: shine 3s linear infinite;
 }
 @keyframes ticker {
   0% { transform: translateX(0); }
