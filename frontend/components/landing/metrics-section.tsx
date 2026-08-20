@@ -12,7 +12,6 @@ function AnimatedCounter({ end, suffix = "", prefix = "" }: { end: number; suffi
       ([entry]) => {
         if (entry.isIntersecting && !hasAnimated) {
           setHasAnimated(true);
-          let start = 0;
           const duration = 2000;
           const startTime = performance.now();
 
@@ -38,7 +37,7 @@ function AnimatedCounter({ end, suffix = "", prefix = "" }: { end: number; suffi
   }, [end, hasAnimated]);
 
   return (
-    <div ref={ref} className="text-6xl lg:text-8xl font-display tracking-tight">
+    <div ref={ref} className="text-6xl lg:text-8xl font-display tracking-tight text-indigo-500">
       {prefix}{count.toLocaleString()}{suffix}
     </div>
   );
@@ -46,38 +45,39 @@ function AnimatedCounter({ end, suffix = "", prefix = "" }: { end: number; suffi
 
 const metrics = [
   { 
-    value: 2847392, 
-    suffix: "", 
+    value: 12847, 
+    suffix: "+", 
     prefix: "",
-    label: "API requests today",
+    label: "AI models discovered",
   },
   { 
     value: 99, 
-    suffix: ".99%", 
+    suffix: ".9%", 
     prefix: "",
-    label: "Uptime this quarter",
+    label: "Detection accuracy",
   },
   { 
-    value: 23, 
-    suffix: "ms", 
+    value: 4, 
+    suffix: "s", 
     prefix: "",
-    label: "Average response time",
+    label: "Average scan time per repo",
   },
   { 
-    value: 184, 
-    suffix: "", 
+    value: 300, 
+    suffix: "+", 
     prefix: "",
-    label: "Countries served",
+    label: "Supported libraries & providers",
   },
 ];
 
 export function MetricsSection() {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<string>("");
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(new Date()), 1000);
+    setTime(new Date().toLocaleTimeString());
+    const interval = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -94,32 +94,32 @@ export function MetricsSection() {
   }, []);
 
   return (
-    <section id="studio" ref={sectionRef} className="relative py-24 lg:py-32 border-y border-foreground/10">
+    <section id="metrics" ref={sectionRef} className="relative py-24 lg:py-32 border-y border-foreground/10">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-16 lg:mb-24">
           <div>
             <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
               <span className="w-8 h-px bg-foreground/30" />
-              Live metrics
+              Platform Scale
             </span>
             <h2
               className={`text-4xl lg:text-6xl font-display tracking-tight transition-all duration-700 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
             >
-              Performance you
+              Enterprise-grade
               <br />
-              can measure.
+              visibility.
             </h2>
           </div>
           <div className="flex items-center gap-4 font-mono text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              Live
+              System Status
             </span>
             <span className="text-foreground/30">|</span>
-            <span>{time.toLocaleTimeString()}</span>
+            <span>{time}</span>
           </div>
         </div>
         

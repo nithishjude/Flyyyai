@@ -5,48 +5,47 @@ import { ArrowRight, Check } from "lucide-react";
 
 const plans = [
   {
-    name: "Starter",
-    description: "For individuals and small projects",
+    name: "Open Source",
+    description: "For individuals and small open source projects",
     price: { monthly: 0, annual: 0 },
     features: [
-      "Up to 3 projects",
-      "1GB storage",
+      "Local directory scanning",
+      "Basic LLM detection",
+      "Up to 3 repositories",
+      "Standard evidence chain",
       "Community support",
-      "Basic analytics",
-      "SSL certificates",
     ],
-    cta: "Start free",
+    cta: "Start scanning",
     popular: false,
   },
   {
-    name: "Pro",
-    description: "For growing teams and businesses",
-    price: { monthly: 29, annual: 24 },
+    name: "Enterprise",
+    description: "For governance, compliance, and security teams",
+    price: { monthly: 999, annual: 799 },
     features: [
-      "Unlimited projects",
-      "100GB storage",
+      "Unlimited repositories",
+      "GitHub & GitLab integrations",
+      "Advanced inference detection",
+      "Custom compliance reporting",
+      "API access & webhooks",
+      "Role-based access control",
       "Priority support",
-      "Advanced analytics",
-      "Custom domains",
-      "Team collaboration",
-      "API access",
     ],
     cta: "Start trial",
     popular: true,
   },
   {
-    name: "Enterprise",
-    description: "For large-scale operations",
+    name: "Scale",
+    description: "For large-scale, multi-org operations",
     price: { monthly: null, annual: null },
     features: [
-      "Everything in Pro",
-      "Unlimited storage",
-      "24/7 dedicated support",
-      "Custom integrations",
+      "Everything in Enterprise",
+      "On-premise deployment",
+      "Custom detection rules",
+      "Dedicated account manager",
       "SLA guarantee",
-      "On-premise option",
-      "Security audit",
-      "Custom contracts",
+      "Security audit & pentest reports",
+      "Custom contracts & invoicing",
     ],
     cta: "Contact sales",
     popular: false,
@@ -65,12 +64,12 @@ export function PricingSection() {
             Pricing
           </span>
           <h2 className="font-display text-5xl md:text-6xl lg:text-7xl tracking-tight text-foreground mb-6">
-            Simple, transparent
+            Predictable pricing for
             <br />
-            <span className="text-stroke">pricing</span>
+            <span className="text-stroke">asset governance</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-xl">
-            Start free and scale as you grow. No hidden fees, no surprises.
+            Start governing your AI assets today. No hidden fees, no surprises.
           </p>
         </div>
 
@@ -101,8 +100,8 @@ export function PricingSection() {
             Annual
           </span>
           {isAnnual && (
-            <span className="ml-2 px-2 py-1 bg-foreground text-primary-foreground text-xs font-mono">
-              Save 17%
+            <span className="ml-2 px-2 py-1 bg-indigo-500 text-white text-xs font-mono">
+              Save 20%
             </span>
           )}
         </div>
@@ -113,11 +112,11 @@ export function PricingSection() {
             <div
               key={plan.name}
               className={`relative p-8 lg:p-12 bg-background ${
-                plan.popular ? "md:-my-4 md:py-12 lg:py-16 border-2 border-foreground" : ""
+                plan.popular ? "md:-my-4 md:py-12 lg:py-16 border-2 border-indigo-500" : ""
               }`}
             >
               {plan.popular && (
-                <span className="absolute -top-3 left-8 px-3 py-1 bg-foreground text-primary-foreground text-xs font-mono uppercase tracking-widest">
+                <span className="absolute -top-3 left-8 px-3 py-1 bg-indigo-500 text-white text-xs font-mono uppercase tracking-widest">
                   Most Popular
                 </span>
               )}
@@ -149,7 +148,7 @@ export function PricingSection() {
               <ul className="space-y-4 mb-10">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
-                    <Check className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
+                    <Check className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
                     <span className="text-sm text-muted-foreground">{feature}</span>
                   </li>
                 ))}
@@ -159,7 +158,7 @@ export function PricingSection() {
               <button
                 className={`w-full py-4 flex items-center justify-center gap-2 text-sm font-medium transition-all group ${
                   plan.popular
-                    ? "bg-foreground text-primary-foreground hover:bg-foreground/90"
+                    ? "bg-indigo-600 text-white hover:bg-indigo-500"
                     : "border border-foreground/20 text-foreground hover:border-foreground hover:bg-foreground/5"
                 }`}
               >
@@ -169,14 +168,6 @@ export function PricingSection() {
             </div>
           ))}
         </div>
-
-        {/* Bottom Note */}
-        <p className="mt-12 text-center text-sm text-muted-foreground">
-          All plans include automatic updates, HTTPS, and DDoS protection.{" "}
-          <a href="#" className="underline underline-offset-4 hover:text-foreground transition-colors">
-            Compare all features
-          </a>
-        </p>
       </div>
     </section>
   );
