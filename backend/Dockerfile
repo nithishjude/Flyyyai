@@ -15,5 +15,8 @@ COPY backend/ .
 COPY testbed/ ./testbed/
 
 # Render provides $PORT; default to 8000 for local/docker-compose use.
+# EXPOSE tells Render (and docker-compose) which port to route to for a
+# Docker-runtime service — without it, platforms can't infer the port.
 ENV PORT=8000
+EXPOSE 8000
 CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
