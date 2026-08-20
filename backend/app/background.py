@@ -1,4 +1,4 @@
-import asyncio
+import os
 import re
 import subprocess
 import tempfile
@@ -6,7 +6,6 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
@@ -50,6 +49,21 @@ def _persist_assets(db: Session, scan: Scan, asset_records):
             db.add(evidence)
 
 
+def _normalise_local_path(raw: str) -> str:
+    """
+    Robustly normalise a local path string that may arrive from the API with
+    either forward or backward slashes.  On Windows the backslash variant is
+    common, but JSON-transmitted strings sometimes contain control characters
+    when naive escape handling is applied.  We sanitise by:
+      1. Replacing any remaining literal backslash characters with the OS sep.
+      2. Running os.path.normpath so the OS resolves the canonical form.
+    """
+    # Replace forward slashes with the OS path separator for uniformity,
+    # then normalise (handles mixed separators, double slashes, etc.)
+    normalised = os.path.normpath(raw.replace("/", os.sep))
+    return normalised
+
+
 def run_scan_task(scan_id: str, repo_url: str):
     """Background task to run the discovery pipeline."""
     db = SessionLocal()
@@ -79,21 +93,21 @@ def run_scan_task(scan_id: str, repo_url: str):
                     )
                 except subprocess.CalledProcessError as e:
                     raise Exception(f"Failed to clone repository: {e.stderr}")
-                
+
                 asset_records, _ = run_scan(temp_dir, discovery_source="GitHub")
                 _persist_assets(db, scan, asset_records)
         else:
-            repo_path = Path(repo_url)
-            if not repo_path.exists():
-                raise ValueError(f"Repository path does not exist: {repo_url}")
-            
-            asset_records, _ = run_scan(str(repo_path.resolve()), discovery_source="local")
+            normalised = _normalise_local_path(repo_url)
+            log.info("scan_path_debug", raw=repr(repo_url), normalised=repr(normalised), exists=os.path.exists(normalised))
+            if not os.path.exists(normalised):
+                raise ValueError(f"Repository path does not exist: {normalised}")
+            asset_records, _ = run_scan(normalised, discovery_source="local")
             _persist_assets(db, scan, asset_records)
 
         scan.status = "completed"
         scan.completed_at = datetime.now(timezone.utc)
         db.commit()
-        
+
         asset_count = db.query(Asset).filter(Asset.scan_id == scan_id).count()
         log.info("scan_completed", scan_id=scan_id, repo_url=repo_url, asset_count=asset_count)
 
