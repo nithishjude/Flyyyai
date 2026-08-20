@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import AssetCard from "@/components/AssetCard";
@@ -26,7 +27,7 @@ interface AssetsResponse {
   scan_id: string | null;
 }
 
-export default function AssetsPage() {
+function AssetsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -200,5 +201,19 @@ export default function AssetsPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function AssetsPage() {
+  return (
+    <Suspense fallback={
+      <div className="asset-grid">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    }>
+      <AssetsContent />
+    </Suspense>
   );
 }
