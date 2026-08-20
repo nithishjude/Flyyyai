@@ -1,0 +1,23 @@
+databases:
+  - name: flyyy-db
+    plan: free
+    databaseName: aiassets
+    user: aiuser
+
+services:
+  - type: web
+    name: flyyy-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: flyyy-db
+          property: connectionString
+      # Set this after the frontend is deployed on Vercel, e.g.
+      # https://your-app.vercel.app (comma-separate multiple origins).
+      - key: CORS_ORIGINS
+        sync: false

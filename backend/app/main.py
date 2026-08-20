@@ -1,10 +1,13 @@
 """
 FastAPI application — main entry point.
 
-CORS is configured to allow the Next.js frontend on localhost:3000.
+CORS is configured to allow the Next.js frontend on localhost:3000, plus
+any origins listed in the CORS_ORIGINS env var (comma-separated) for
+deployed environments (e.g. the Vercel frontend URL).
 Tables are created on startup via SQLAlchemy metadata.
 """
 
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -33,13 +36,20 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS — allow the Next.js dev server and any local origins
+# CORS — allow the Next.js dev server, local origins, and any deployed
+# frontend origins listed in CORS_ORIGINS (comma-separated, e.g.
+# "https://your-app.vercel.app,https://your-app-git-main.vercel.app")
+_extra_origins = [
+    o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:3001",
+        *_extra_origins,
     ],
     allow_credentials=True,
     allow_methods=["*"],

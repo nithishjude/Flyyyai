@@ -1,0 +1,18 @@
+# Build context is the repo root for backend/Dockerfile — keep it lean.
+
+.git
+.gitignore
+
+frontend/node_modules
+frontend/.next
+frontend/out
+
+backend/venv
+backend/__pycache__
+backend/**/__pycache__
+backend/*.db
+backend/test.db
+backend/flyyy.db
+
+**/.env
+**/.env.local
