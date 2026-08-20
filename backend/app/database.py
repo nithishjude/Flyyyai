@@ -12,6 +12,12 @@ DATABASE_URL = os.environ.get(
     "sqlite:///./flyyy.db",
 )
 
+# Render (and Heroku) hand out connection strings with the legacy
+# "postgres://" scheme, which SQLAlchemy 2.x + psycopg2 no longer accept
+# (raises NoSuchModuleError). Normalize to "postgresql://".
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
