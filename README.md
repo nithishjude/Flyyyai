@@ -6,7 +6,7 @@ An end-to-end system that automatically discovers AI usage across a codebase and
 
 ---
 
-**Live Deployment:** [https://your-deployment-link-here.vercel.app](https://your-deployment-link-here.vercel.app) (Placeholder)
+**Live Deployment:** [https://flyyyai.vercel.app](https://flyyyai.vercel.app) (frontend on Vercel, API on Render)
 
 ---
 
@@ -40,18 +40,22 @@ d:\fly\
 │   │       ├── scans.py        # POST /scans, GET /scans/{id}
 │   │       └── assets.py       # GET /assets, GET /assets/{id}
 │   └── tests/                  # pytest unit + integration tests
-├── frontend/                   # Next.js 15 App Router
+├── frontend/                   # Next.js 16 App Router
 │   ├── app/
-│   │   ├── page.tsx            # Scan trigger (Client Component)
-│   │   └── assets/
-│   │       ├── page.tsx        # Asset inventory (Server Component)
-│   │       └── [id]/page.tsx   # Asset detail + evidence (Server Component)
+│   │   ├── page.tsx            # Marketing landing page ("/")
+│   │   └── (dashboard)/        # Route group — own layout (app-shell nav/footer)
+│   │       ├── scan/page.tsx           # Scan trigger
+│   │       ├── assets/page.tsx         # Asset inventory
+│   │       ├── assets/[id]/page.tsx    # Asset detail + evidence
+│   │       └── scans/page.tsx          # Scan history
 │   └── components/
+│       ├── landing/            # Landing page sections (Hero, Features, etc.)
 │       ├── ScanForm.tsx        # Interactive scan form
 │       ├── AssetCard.tsx       # Asset summary card
 │       ├── EvidenceList.tsx    # Traceable evidence records
 │       └── StatusBadge.tsx     # Discovered/Inferred/Pending badge
-└── docker-compose.yml          # PostgreSQL service
+├── render.yaml                 # Render Blueprint (backend web service + Postgres)
+└── docker-compose.yml          # Local Postgres + backend + frontend stack
 ```
 
 ---
@@ -101,10 +105,41 @@ Frontend available at: http://localhost:3000
 
 ### 4. Run a Scan
 
-1. Navigate to http://localhost:3000
-2. Enter the absolute path to the testbed: `d:\fly\testbed` (or `d:/fly/testbed`)
-3. Click **Run Scan**
-4. Click **View Assets** to see the inventory
+Navigate to http://localhost:3000/scan. The **Repository Path** field expects an **absolute local path on the machine running the backend** — not a GitHub URL. The scanner walks that path directly on disk, so what you type depends on where you're running it from.
+
+#### Local development (this repo, on your machine)
+
+Point it at one of the two bundled sample apps, or any other project on disk:
+
+```
+D:\fly\testbed\doc-search
+D:\fly\testbed\support-portal
+```
+
+(forward slashes also work: `D:/fly/testbed/doc-search`)
+
+#### Live deployment (flyyyai.vercel.app)
+
+The deployed backend runs in a container that only has `testbed/` bundled into its own filesystem (Render, per `render.yaml`) — your local machine's paths aren't reachable from it. Use:
+
+```
+/app/testbed/doc-search
+/app/testbed/support-portal
+```
+
+(`/app` is the container's `WORKDIR`.)
+
+#### Someone else running their own clone
+
+The path is specific to wherever *they* cloned the repo — never `D:\fly\...`, since that's this machine's layout. After cloning, they'd give the absolute path to `testbed/doc-search` (or any repo they have) as it exists on *their* filesystem, e.g. `~/projects/fly/testbed/doc-search` on macOS/Linux or `C:\Users\them\fly\testbed\doc-search` on Windows.
+
+Then:
+1. Click **Run Scan**
+2. Click **View Assets** to see the inventory
+
+#### Other repos worth trying
+
+Beyond the two planted testbed apps, you can point the scanner at any real codebase on the same machine to see how it handles something not purpose-built for the demo — e.g. this project's own `backend/` directory (finds nothing, since the backend itself doesn't call any AI provider — a useful negative-detection sanity check), or any other local repo that imports `openai`, `anthropic`, `langchain`, `transformers`, etc.
 
 ---
 
